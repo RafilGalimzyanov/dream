@@ -12,8 +12,20 @@ services:
         reservations:
           memory: 2G
 
-  mongo:
-    command: mongod
-    image: mongo:4.0.0
+  db:
+    container_name: db_main
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_USER=admin
+    image: postgres:16rc1-alpine3.18
 
-version: '3.7'
+  proxy-server:
+    build: DataExchangeService
+    ports:
+      - "5433:5433"
+    depends_on:
+      - db
+    environment:
+      - PATH=/
