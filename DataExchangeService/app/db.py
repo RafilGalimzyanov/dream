@@ -1,3 +1,4 @@
+import json
 import os
 
 import asyncpg
@@ -36,15 +37,14 @@ class DataBase:
     async def add_request_info(cls, data):
         try:
             for key, value in data.items():
-                await cls.connection.execute("select * from proxy.addrequestinfo($1,$2)", key, value)
+                await cls.connection.execute("select * from proxy.addrequestinfo($1,$2)", key, json.dumps(value))
         except asyncpg.exceptions.RaiseError as e:
             print(e)
 
     @classmethod
     async def add_answer_info(cls, answer):
         try:
-            for key, value in answer.items():
-                await cls.connection.execute("select * from proxy.addanswerinfo($1,$2)", key, value)
+            await cls.connection.execute("select * from proxy.addanswerinfo($1,$2)", "data", json.dumps(answer))
         except asyncpg.exceptions.RaiseError as e:
             print(e)
 

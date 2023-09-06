@@ -25,7 +25,7 @@ app = FastAPI(
 )
 
 
-@app.post("/test", tags=["Tag_name"], response_model=Response,
+@app.post("/test", tags=["Tag_name"], response_model=None,
           summary="Тестовый метод", description="Тест",
           )
 async def get_categories(

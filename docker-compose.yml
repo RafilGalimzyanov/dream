@@ -31,6 +31,8 @@ services:
       - "8000:8000"
     environment:
       - DATABASE_HOST=db
+      - BADLISTED_WORDS_SERVICE_HOST=badlisted-words
     depends_on:
       - db
+
 version: '3.7'
