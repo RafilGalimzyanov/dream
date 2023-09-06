@@ -1,50 +1,54 @@
 import json
 import os
-
-import asyncpg
+import aiohttp
+import asyncio
+from sqlalchemy import create_engine, Column, Integer, String, JSON
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.exc import SQLAlchemyError
 from .settings import setting
 
+Base = declarative_base()
 
-class DataBase:
-    connection = None
+class RequestInfo(Base):
+    __tablename__ = 'request_info'
 
-    @classmethod
-    async def connect(cls):
-        if not cls.connection:
-            try:
-                cls.connection = await asyncpg.connect(
-                    user=setting.user_name,
-                    password=setting.password,
-                    host=os.getenv("DATABASE_HOST"),
-                    port=setting.port,
-                    database=setting.name
-                )
+    id = Column(Integer, primary_key=True)
+    key = Column(String)
+    value = Column(JSON)
 
-                return True
-            except asyncpg.PostgresError as e:
-                print(f"Logging error: cannot connect to db, {e}")
-                return False
+class AnswerInfo(Base):
+    __tablename__ = 'answer_info'
 
-    @classmethod
-    async def close(cls):
-        try:
-            if cls.connection:
-                await cls.connection.close()
-        finally:
-            cls.connection = None
+    id = Column(Integer, primary_key=True)
+    data = Column(JSON)
 
-    @classmethod
-    async def add_request_info(cls, data):
+
+class DatabaseWriter:
+    def __init__(self):
+        db_url = f'postgresql://{setting.user_name}:{setting.password}@{os.getenv("DATABASE_HOST")}:{setting.port}/{setting.name}'
+        self.engine = create_engine(db_url)
+        self.session = Session(self.engine)
+
+    def add_request_info(self, data):
         try:
             for key, value in data.items():
-                await cls.connection.execute("select * from proxy.addrequestinfo($1,$2)", key, json.dumps(value))
-        except asyncpg.exceptions.RaiseError as e:
-            print(e)
+                request_info = RequestInfo(key=key, value=value)
+                self.session.add(request_info)
+            self.session.commit()
+        except Exception as e:
+            self.session.rollback()
+            raise e
+        finally:
+            self.session.close()
 
-    @classmethod
-    async def add_answer_info(cls, answer):
+    def add_answer_info(self, answer):
         try:
-            await cls.connection.execute("select * from proxy.addanswerinfo($1,$2)", "data", json.dumps(answer))
-        except asyncpg.exceptions.RaiseError as e:
-            print(e)
-
+            answer_info = AnswerInfo(data=answer)
+            self.session.add(answer_info)
+            self.session.commit()
+        except Exception as e:
+            self.session.rollback()
+            raise e
+        finally:
+            self.session.close()

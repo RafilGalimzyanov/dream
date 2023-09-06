@@ -22,7 +22,7 @@ services:
     environment:
       - POSTGRES_PASSWORD=root
       - POSTGRES_USER=admin
-      - POSTGRES_NAME=admin
+      - POSTGRES_DB=admin
     image: postgres:16rc1-alpine3.18
 
   proxy-server:
@@ -34,5 +34,15 @@ services:
       - BADLISTED_WORDS_SERVICE_HOST=badlisted-words
     depends_on:
       - db
+
+  migrations:
+    build:
+      context: ./DataExchangeService
+    container_name: my_migrations
+    depends_on:
+      - db
+    volumes:
+      - ./DataExchangeService/alembic:/app/alembic
+    command: [ "alembic", "upgrade", "head" ]
 
 version: '3.7'

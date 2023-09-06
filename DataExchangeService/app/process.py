@@ -1,26 +1,26 @@
 import aiohttp
 import json
 
-from .db import DataBase
+from .db import DatabaseWriter
 
 
 async def processing_data(data: dict):
-    await DataBase().connect()
+    writer = DatabaseWriter()
 
-    await DataBase.add_request_info(data)
+    try:
+        writer.add_request_info(data)  # Добавляем данные в RequestInfo
 
-    async with aiohttp.ClientSession() as session:
         url = 'http://badlisted-words:8018/badlisted_words'
         headers = {"Content-Type": "application/json"}
         json_data = json.dumps(data)
 
-        answer_data = None
-        async with session.post(url, data=json_data, headers=headers) as response:
-            answer_data = await response.json()
-
-    if answer_data:
-        await DataBase.add_answer_info(answer_data)
-        return answer_data
-    await DataBase.close()
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, data=json_data, headers=headers) as response:
+                answer_data = await response.json()
+                if answer_data:
+                    writer.add_answer_info(answer_data)  # Добавляем данные в AnswerInfo
+                    return answer_data
+    except Exception as e:
+        print(f"Error during processing: {e}")
 
     return {}
