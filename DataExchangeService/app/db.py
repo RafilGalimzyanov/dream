@@ -1,5 +1,7 @@
+import os
+
 import asyncpg
-from settings import setting
+from .settings import setting
 
 
 class DataBase:
@@ -12,10 +14,11 @@ class DataBase:
                 cls.connection = await asyncpg.connect(
                     user=setting.user_name,
                     password=setting.password,
-                    host=setting.host,
+                    host=os.getenv("DATABASE_HOST"),
                     port=setting.port,
                     database=setting.name
                 )
+
                 return True
             except asyncpg.PostgresError as e:
                 print(f"Logging error: cannot connect to db, {e}")

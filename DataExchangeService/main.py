@@ -2,7 +2,8 @@ from fastapi import FastAPI
 from pydantic import json
 from starlette.responses import JSONResponse
 
-from DataExchangeService.app.process import processing_data
+from app.models import Response
+from app.process import processing_data
 from app import settings
 
 
@@ -24,10 +25,10 @@ app = FastAPI(
 )
 
 
-@app.post("/test", tags=["Tag_name"], response_model=JSONResponse,
+@app.post("/test", tags=["Tag_name"], response_model=Response,
           summary="Тестовый метод", description="Тест",
           )
 async def get_categories(
-        data: json
+        data: dict
 ):
     return await processing_data(data)
