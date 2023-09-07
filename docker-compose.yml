@@ -35,14 +35,5 @@ services:
     depends_on:
       - db
 
-  migrations:
-    build:
-      context: ./DataExchangeService
-    container_name: my_migrations
-    depends_on:
-      - db
-    volumes:
-      - ./DataExchangeService/alembic:/app/alembic
-    command: [ "alembic", "upgrade", "head" ]
 
 version: '3.7'

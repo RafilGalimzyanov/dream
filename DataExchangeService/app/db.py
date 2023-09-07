@@ -10,12 +10,14 @@ from .settings import setting
 
 Base = declarative_base()
 
+
 class RequestInfo(Base):
     __tablename__ = 'request_info'
 
     id = Column(Integer, primary_key=True)
     key = Column(String)
     value = Column(JSON)
+
 
 class AnswerInfo(Base):
     __tablename__ = 'answer_info'
